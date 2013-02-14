@@ -1,0 +1,6 @@
+<?php
+############################################################################
+# Capsule CRM
+############################################################################
+$config['Capsule']['host'] = 'sample.capsulecrm.com';
+$config['Capsule']['token'] = 'Can be found in my preferences > API Authentication Token';
