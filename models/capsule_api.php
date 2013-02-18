@@ -6,14 +6,9 @@ class CapsuleApi extends AppModel {
 	protected $_config = array();
 
 	protected $_request = array(
-		'method' => 'GET',
 		'uri' => array(
 			'scheme' => 'https',
-			'host' => 'api.twitter.com',
 			'path' => '/api',
-		),
-		'header' => array(
-			'Accept' => 'application/json'
 		),
 		'auth' => array(
 			'method' => 'Basic',
@@ -21,11 +16,34 @@ class CapsuleApi extends AppModel {
 		)
 	);
 
+	protected $_get = array(
+		'method' => 'GET',
+		'header' => array(
+			'Accept' => 'application/json'
+		),
+	);
+
+	protected $_post = array(
+		'method' => 'POST',
+		'header' => array(
+			'Content-type' => 'application/json'
+		),
+	);
+
+	protected $_put = array(
+		'method' => 'PUT',
+		'header' => array(
+			'Content-type' => 'application/json'
+		),
+	);
+
+	protected $_delete = array(
+		'method' => 'DELETE',
+	);
+
 	public function __construct($id = false, $table = null, $ds = null) {
 		parent::__construct($id, $table, $ds);
 		$this->_config = Configure::read('Capsule');
-		$this->_request['uri']['host'] = $this->_config['host'];
-		$this->_request['auth']['user'] = $this->_config['token'];
 	}
 
 	protected function _generateCacheKey() {
@@ -42,18 +60,48 @@ class CapsuleApi extends AppModel {
 	}
 
 	protected function _parseResponse($response) {
-		$results = json_decode($response);
-		$results = Set::reverse($results);
+		$results = $response;
+		$body = json_decode($response['body']);
+		$body = Set::reverse($body);
+		$results['body'] = $body;
 		return $results;
 	}
 
-	protected function _request($path, $request = array()) {
+	protected function _get($path, $request = array(), $options = array()) {
+		if (!isset($options['cache'])) {
+			$options['cache'] = false;
+		}
+		$request = Set::merge($this->_request, $this->_get, $request);
+		return $this->_request($path, $request, $options);
+	}
+
+	protected function _post($path, $request = array()) {
+		$request = Set::merge($this->_request, $this->_post, $request);
+		$response = $this->_request($path, $request);
+		return $response;
+	}
+
+	protected function _put($path, $request = array()) {
+		$request = Set::merge($this->_request, $this->_put, $request);
+		$response = $this->_request($path, $request);
+		return $response;
+	}
+
+	protected function _delete($path, $request = array()) {
+		$request = Set::merge($this->_request, $this->_delete, $request);
+		$response = $this->_request($path, $request);
+		return $response;
+	}
+
+	protected function _request($path, $request = array(), $options = array()) {
 		// preparing request
-		$request = Set::merge($this->_request, $request);
+		$request['uri']['host'] = $this->_config['host'];
+		$request['auth']['user'] = $this->_config['token'];
 		$request['uri']['path'] .= $path;
 
 		// Read cached GET results
-		if ($request['method'] == 'GET') {
+		if ($request['method'] == 'GET' 
+		&& (isset($options['cache']) && $options['cache'] === true)) {
 			$cacheKey = $this->_generateCacheKey();
 			$results = Cache::read($cacheKey);
 			if ($results !== false) {
@@ -66,13 +114,14 @@ class CapsuleApi extends AppModel {
 		$HttpSocket = new HttpSocket();
 
 		// issuing request
-		$response = $HttpSocket->request($request);
+		$HttpSocket->request($request);
 
 		// parsing response
-		$results = $this->_parseResponse($response);
+		$results = $this->_parseResponse($HttpSocket->response);
 
 		// cache and return results
-		if ($request['method'] == 'GET') {
+		if ($request['method'] == 'GET' && !empty($results)
+		&& (isset($options['cache']) && $options['cache'] === true)) {
 			Cache::write($cacheKey, $results);
 		}
 		return $results;

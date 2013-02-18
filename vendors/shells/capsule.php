@@ -1,10 +1,12 @@
 <?php
 class CapsuleShell extends Shell {
 	public $uses = array(
-		'Capsule.Capsule'
+		'Capsule.Capsule',
 	);
 	
-	public function users() {
-		return $this->Capsule->users();
+	public function deleteAll() {
+		if ($count = $this->Capsule->deleteAllParties()) {
+			$this->out(sprintf('%s parties deleted.', $count));
+		}
 	} 
 }
