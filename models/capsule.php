@@ -41,30 +41,48 @@ class Capsule extends CapsuleApi {
 		return $response['body'];
 	}
 
-	public function setOrganisation($data, $request = array()) {
+	public function setOrganisation($data, $id = null, $request = array()) {
 		if (!isset($data['organisation'])) {
 			$data = array('organisation' => $data);
 		}
 		$request['body'] = json_encode($data);
-		$response = $this->_post('/organisation', $request);
-		if ($response['status']['code'] != 201) {
+		if ($id) {
+			$path = sprintf('/organisation/%s', $id);
+			$response = $this->_put($path, $request);
+		} else {
+			$response = $this->_post('/organisation', $request);
+		}
+		if (substr($response['status']['code'], 0, 1) != 2) {
 			return false;
 		}
-		$location = $response['header']['Location'];
-		return array_pop(explode('/', $location));
+		if (isset($response['header']['Location'])) {
+			$location = $response['header']['Location'];
+			return array_pop(explode('/', $location));
+		} else {
+			return true;
+		}
 	}
 
-	public function setPerson($data, $request = array()) {
+	public function setPerson($data, $id = null, $request = array()) {
 		if (!isset($data['person'])) {
 			$data = array('person' => $data);
 		}
 		$request['body'] = json_encode($data);
-		$response = $this->_post('/person', $request);
-		if ($response['status']['code'] != 201) {
+		if ($id) {
+			$path = sprintf('/person/%s', $id);
+			$response = $this->_put($path, $request);
+		} else {
+			$response = $this->_post('/person', $request);
+		}
+		if (substr($response['status']['code'], 0, 1) != 2) {
 			return false;
 		}
-		$location = $response['header']['Location'];
-		return array_pop(explode('/', $location));
+		if (isset($response['header']['Location'])) {
+			$location = $response['header']['Location'];
+			return array_pop(explode('/', $location));
+		} else {
+			return true;
+		}
 	}
 
 	public function setTag($type, $id, $tag, $request = array()) {
