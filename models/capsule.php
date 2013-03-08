@@ -36,6 +36,12 @@ class Capsule extends CapsuleApi {
 		return $response['body'];
 	}
 
+	public function getTags($type, $id, $request = array()) {
+		$url = sprintf('/%s/%s/tag', $type, $id);
+		$response = $this->_get($url, $request);
+		return $response['body'];
+	}
+
 	public function getUsers($request = array()) {
 		$response = $this->_get('/users', $request);
 		return $response['body'];
