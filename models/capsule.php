@@ -31,6 +31,15 @@ class Capsule extends CapsuleApi {
 		return true;
 	}
 
+	public function deleteTag($type, $id, $tag, $request = array()) {
+		$url = sprintf('/%s/%s/tag/%s', $type, $id, $tag);
+		$response = $this->_delete($url, $request);
+		if ($response['status']['code'] != 200) {
+			return false;
+		}
+		return true;
+	}
+
 	public function getParty($request = array()) {
 		$response = $this->_get('/party', $request);
 		return $response['body'];
